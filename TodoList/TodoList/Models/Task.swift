@@ -20,6 +20,7 @@ class Task {
     var dueDate: Date?
     var priority: Priority = Priority.medium
     var isDone: Bool = false
+    var folders: [Folder] = []
     
     init(title: String, details: String? = nil, dueDate: Date? = nil, priority: Priority = .medium, isDone: Bool = false) {
         self.title = title
