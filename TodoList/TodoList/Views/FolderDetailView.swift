@@ -33,19 +33,23 @@ struct FolderDetailView: View {
             if !folder.tasks.isEmpty {
                 Section("Tasks") {
                     ForEach(folder.tasks) { task in
-                        HStack {
-                            if task.isDone {
-                                Image(systemName: "checkmark.square.fill")
-                                    .foregroundStyle(.green)
-                            } else {
-                                Image(systemName: "square")
-                                    .foregroundStyle(.gray)
-                            }
-                            
-                            if !task.isDone {
-                                Text(task.name)
-                            } else {
-                                Text(task.name).strikethrough()
+                        NavigationLink {
+                            TaskDetailView(task: task)
+                        } label : {
+                            HStack {
+                                if task.isDone {
+                                    Image(systemName: "checkmark.square.fill")
+                                        .foregroundStyle(.green)
+                                } else {
+                                    Image(systemName: "square")
+                                        .foregroundStyle(.gray)
+                                }
+                                
+                                if !task.isDone {
+                                    Text(task.name)
+                                } else {
+                                    Text(task.name).strikethrough()
+                                }
                             }
                         }
                     }
