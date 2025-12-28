@@ -15,15 +15,15 @@ enum Priority: String, Codable {
 
 @Model
 class Task {
-    var title: String
+    var name: String
     var details: String?
     var dueDate: Date?
     var priority: Priority = Priority.medium
     var isDone: Bool = false
     var folders: [Folder] = []
     
-    init(title: String, details: String? = nil, dueDate: Date? = nil, priority: Priority = .medium, isDone: Bool = false) {
-        self.title = title
+    init(name: String, details: String? = nil, dueDate: Date? = nil, priority: Priority = .medium, isDone: Bool = false) {
+        self.name = name
         self.details = details
         self.dueDate = dueDate
         self.priority = priority
