@@ -13,26 +13,28 @@ struct ContentView: View {
     @Query(sort: \Folder.name) private var folders: [Folder]
 
     var body: some View {
+        // Ensure root folder exists and load it
         NavigationStack {
-            List {
-                ForEach(folders) { folder in
-                    Text(folder.name)
-                }
+            if let root = rootFolder {
+                Text("Root Ready")
+            } else {
+                Text("Loading Root")
             }
-            .navigationTitle("Folders")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Add Folder") {
-                        addFolder()
-                    }
-                }
-            }
+        }
+        .task {
+            ensureRootFolder()
         }
     }
 
-    private func addFolder() {
-        let folder = Folder(name: "New Folder")
-        modelContext.insert(folder)
+    private var rootFolder: Folder? {
+        folders.first(where: { $0.name == "Root" && $0.parent == nil})
+    }
+    
+    private func ensureRootFolder() {
+        if rootFolder == nil {
+            let root = Folder(name: "Root")
+            modelContext.insert(root)
+        }
     }
 }
 
