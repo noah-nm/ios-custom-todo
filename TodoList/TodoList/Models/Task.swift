@@ -7,10 +7,8 @@
 import Foundation
 import SwiftData
 
-enum Priority: String, Codable {
-    case low
-    case medium
-    case high
+enum Priority: String, Codable, CaseIterable {
+    case low, medium, high
 }
 
 @Model
