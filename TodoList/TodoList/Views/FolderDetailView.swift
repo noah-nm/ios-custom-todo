@@ -11,17 +11,19 @@ import SwiftData
 struct FolderDetailView: View {
     let folder: Folder
 
-    // New folder state
+    // new folder state
     @State private var showingNewFolderSheet = false
     @State private var newFolderName = ""
     @State private var newFolderDescription = ""
-
-    // New task state
+    
+    // new task state
     @State private var showingNewTaskSheet = false
     @State private var newTaskName = ""
     @State private var newTaskDescription = ""
     @State private var newTaskDueDate = Date()
     @State private var newTaskPriority: Priority = .medium
+    
+    @State private var selectedTask: Task?
 
     @Environment(\.modelContext) private var modelContext
 
@@ -52,9 +54,13 @@ struct FolderDetailView: View {
         .sheet(isPresented: $showingNewTaskSheet) {
             newTaskSheet
         }
+        .navigationDestination(item: $selectedTask) { task in
+            TaskDetailView(task: task)
+        }
     }
 
     // MARK: - List Content
+    // subfolder list
     @ViewBuilder
     private var listContent: some View {
         if !folder.children.isEmpty {
@@ -72,19 +78,73 @@ struct FolderDetailView: View {
                 }
             }
         }
-
+        
+        // task list
         if !folder.tasks.isEmpty {
             Section("Tasks") {
                 ForEach(folder.tasks) { task in
-                    NavigationLink {
-                        TaskDetailView(task: task)
-                    } label: {
-                        HStack {
-                            Image(systemName: task.isDone ? "checkmark.square.fill" : "square")
-                                .foregroundStyle(task.isDone ? .green : .gray)
+                    HStack {
+                        Image(systemName: task.isDone ? "checkmark.square.fill" : "square")
+                            .foregroundStyle(task.isDone ? .green : .gray)
 
+                        VStack(alignment: .leading, spacing: 2) {
                             Text(task.name)
                                 .strikethrough(task.isDone)
+
+                            if let due = task.dueDate {
+                                Text("Due: \(due, style: .date)")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .strikethrough(task.isDone)
+                            }
+                        }
+
+                        Spacer()
+
+                        if task.isDone {
+                            Button {
+                                withAnimation {
+                                    folder.tasks.removeAll { $0.id == task.id}
+                                    
+                                    modelContext.delete(task)
+                                    
+                                    try? modelContext.save()
+                                }
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundStyle(.red)
+                            }
+                            .buttonStyle(.borderless)
+                        }
+
+                        Spacer()
+
+                        Text(task.priority.rawValue.capitalized)
+                            .fontWeight(.medium)
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 10)
+                            .background(priorityColor(task.priority))
+                            .clipShape(Capsule())
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selectedTask = task
+                    }
+
+                    // swipe right to mark task as done
+                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                        Button {
+                            task.isDone = true
+                        } label: {
+                            EmptyView()
+                        }
+                    }
+                    // swipe left to mark task as not done
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button {
+                            task.isDone = false
+                        } label: {
+                            EmptyView()
                         }
                     }
                 }
@@ -176,7 +236,6 @@ struct FolderDetailView: View {
         }
     }
 
-    // MARK: - Create Folder
     private func createFolder() {
         let newFolder = Folder(
             name: newFolderName,
@@ -191,7 +250,6 @@ struct FolderDetailView: View {
         showingNewFolderSheet = false
     }
 
-    // MARK: - Create Task
     private func createTask() {
         let newTask = Task(
             name: newTaskName,
@@ -212,6 +270,14 @@ struct FolderDetailView: View {
         newTaskDescription = ""
         newTaskDueDate = Date()
         newTaskPriority = .medium
+    }
+    
+    private func priorityColor(_ p: Priority) -> Color {
+        switch p {
+        case .low: return .blue.opacity(0.25)
+        case .medium: return .yellow.opacity(0.35)
+        case .high: return .red.opacity(0.35)
+        }
     }
 }
 
